@@ -362,35 +362,43 @@
     document.getElementById('loginModal').style.display = 'none';
   }
 
-  async function doLogin() {
-    const email = document.getElementById('loginEmail').value;
-    const pass = document.getElementById('loginPass').value;
+<!-- Ganti semua fetch() seperti ini -->
 
-    const url = `https://script.google.com/macros/s/AKfycbyR4Uu9VQUSwBa4p-0q9K1BWvQiG2lKPPcqnmhKVjrBNruajHUejmMrKTG0FlTxDDU-Fw/exec?type=login&email= ${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`;
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPass').value;
 
-    const response = await fetch(url);
-    const result = await response.json();
+  const url = `https://script.google.com/macros/s/AKfycbyR4Uu9VQUSwBa4p-0q9K1BWvQiG2lKPPcqnmhKVjrBNruajHUejmMrKTG0FlTxDDU-Fw/exec?type=login&email= ${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`;
+  
+  const response = await fetch(url);
+  const result = await response.json();
+  console.log(result);
 
-    if (result.status === "success") {
-      currentUser = result.email;
-      localStorage.setItem("maouku_user", result.email);
-      alert("Login berhasil!");
-      closeLogin();
-    } else {
-      alert("Email atau password salah");
-    }
-  }
-
-  async function doRegister() {
-    const email = document.getElementById('loginEmail').value;
-    const pass = document.getElementById('loginPass').value;
-
-    const url = `https://script.google.com/macros/s/AKfycbyR4Uu9VQUSwBa4p-0q9K1BWvQiG2lKPPcqnmhKVjrBNruajHUejmMrKTG0FlTxDDU-Fw/exec?type=register&email= ${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`;
-    
-    await fetch(url);
-    alert("Registrasi berhasil!");
+  if (result.status === "success") {
+    localStorage.setItem("maouku_user", result.email);
+    alert("Login berhasil!");
     closeLogin();
+  } else {
+    alert("Email atau password salah");
   }
+}
+
+async function doRegister() {
+  const email = document.getElementById('loginEmail').value;
+  const pass = document.getElementById('loginPass').value;
+
+  const url = `https://script.google.com/macros/s/AKfycbyR4Uu9VQUSwBa4p-0q9K1BWvQiG2lKPPcqnmhKVjrBNruajHUejmMrKTG0FlTxDDU-Fw/exec?type=register&email= ${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`;
+
+  const response = await fetch(url);
+  const result = await response.json();
+
+  if (result.status === "success") {
+    alert("Registrasi berhasil. Silakan login.");
+    closeLogin();
+  } else {
+    alert(result.message || "Registrasi gagal");
+  }
+}
 
   // === CHECKOUT ===
   function openCheckout(index) {
