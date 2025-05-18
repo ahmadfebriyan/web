@@ -221,17 +221,7 @@
 </div>
 
 <!-- MODAL LOGIN -->
-<div id="loginModal" class="modal">
-  <div style="text-align:right;"><button onclick="closeLogin()" style="font-size:20px; background:none; border:none; color:#00c3ff;">✖</button></div>
-  <h2 style="color:#00c3ff; margin:0;">🔐 Masuk / Daftar</h2>
-  <p style="color:#99dfff; font-size:12px;">Harus login dulu biar bisa pesan</p>
-  <hr class="invoice-line">
-  <input type="email" id="loginEmail" placeholder="Email" style="padding:10px; width:90%; border-radius:10px; margin-bottom:10px;">
-  <input type="password" id="loginPass" placeholder="Password" style="padding:10px; width:90%; border-radius:10px; margin-bottom:10px;">
-  <br/>
-  <button onclick="doLogin()">Masuk</button>
-  <button onclick="doRegister()">Daftar</button>
-</div>
+
 
 <!-- MODAL CHECKOUT -->
 <div id="checkoutModal" class="modal">
@@ -354,52 +344,7 @@
   };
 
   // === LOGIN ===
-  function openLogin() {
-    document.getElementById('loginModal').style.display = 'block';
-  }
 
-  function closeLogin() {
-    document.getElementById('loginModal').style.display = 'none';
-  }
-
-<!-- Ganti semua fetch() seperti ini -->
-
-async function doLogin() {
-  const email = document.getElementById('loginEmail').value;
-  const pass = document.getElementById('loginPass').value;
-
-  const url = `https://script.google.com/macros/s/AKfycbyR4Uu9VQUSwBa4p-0q9K1BWvQiG2lKPPcqnmhKVjrBNruajHUejmMrKTG0FlTxDDU-Fw/exec?type=login&email= ${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`;
-  
-  const response = await fetch(url);
-  const result = await response.json();
-  console.log(result);
-
-  if (result.status === "success") {
-    localStorage.setItem("maouku_user", result.email);
-    alert("Login berhasil!");
-    closeLogin();
-  } else {
-    alert("Email atau password salah");
-  }
-}
-
-async function doRegister() {
-  const email = document.getElementById('loginEmail').value;
-  const pass = document.getElementById('loginPass').value;
-
-  const url = `https://script.google.com/macros/s/AKfycbyR4Uu9VQUSwBa4p-0q9K1BWvQiG2lKPPcqnmhKVjrBNruajHUejmMrKTG0FlTxDDU-Fw/exec?type=register&email= ${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`;
-  
-  try {
-    const response = await fetch(url);
-    const result = await response.json();
-    console.log(result); // Cek hasil di console browser (F12)
-    alert(result.message || "Daftar berhasil!");
-    closeLogin();
-  } catch (err) {
-    console.error(err);
-    alert("Gagal terhubung ke server.");
-  }
-}
   // === CHECKOUT ===
   function openCheckout(index) {
     if (!localStorage.getItem("maouku_user")) {
