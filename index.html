@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Maouku - Koleksi Jersey</title>
+  <title>Maouku - Koleksi Jersey Futuristik</title>
 
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins :wght@700&family=Open+Sans&family=Montserrat:wght@500&display=swap" rel="stylesheet">
 
+  <!-- Library PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js "></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js "></script>
+
   <style>
-    /* Sama seperti sebelumnya — bisa disalin dari HTML final */
+    /* Sama seperti sebelumnya */
     body {
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #0b0c2a, #121933);
@@ -46,9 +50,32 @@
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(10px);
       box-shadow: 0 8px 20px rgba(0, 195, 255, 0.1);
+      animation: fadeInUp 0.6s ease forwards;
     }
 
-    .slider img {
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slider {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .slides {
+      display: flex;
+      transition: transform 0.3s ease;
+    }
+
+    .slide {
+      min-width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .slide img {
       width: 100%;
       display: block;
     }
@@ -57,11 +84,12 @@
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      background-color: rgba(0,0,0,0.5);
+      background-color: rgba(0, 0, 0, 0.5);
       color: white;
       border: none;
       padding: 10px;
       cursor: pointer;
+      z-index: 1;
     }
 
     .prev { left: 10px; }
@@ -71,6 +99,32 @@
       padding: 15px;
       font-size: 14px;
       color: #00f0ff;
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    .post-title {
+      font-size: 18px;
+      margin: 0;
+      font-weight: 700;
+      color: #00c3ff;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .price {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 500;
+      color: #00c3ff;
+      margin-top: 10px;
+      font-size: 15px;
+    }
+
+    .varian {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 13px;
+      color: #99dfff;
+      margin: 5px 0;
     }
 
     .btn-wa {
@@ -92,16 +146,31 @@
       background-color: #1ebd58;
     }
 
-    /* MODAL CHECKOUT */
-    #checkoutModal {
+    /* MODAL LOGIN & CHECKOUT */
+    .modal {
       display:none;
       position:fixed;
-      top:0;left:0;right:0;bottom:0;
-      background:rgba(0,0,0,0.95); z-index:9999; padding:20px; overflow:auto;
+      top:0;
+      left:0;
+      right:0;
+      bottom:0;
+      background:rgba(0,0,0,0.95);
+      z-index:9999;
+      padding:20px;
+      overflow:auto;
     }
 
-    #invoicePreview strong {
-      color: #00c3ff;
+    .invoice-line {
+      border:1px solid #00c3ff33;
+      margin:15px 0;
+    }
+
+    #invImage {
+      width:100%;
+      max-width:200px;
+      display:block;
+      margin:10px auto;
+      border-radius:8px;
     }
 
     #sizeOptions button {
@@ -111,6 +180,8 @@
       color:#00c3ff;
       border:1px solid #00c3ff;
       cursor:pointer;
+      font-weight:normal;
+      transition: all 0.3s ease;
       margin:5px;
     }
 
@@ -149,12 +220,27 @@
   <div id="posts"></div>
 </div>
 
+<!-- MODAL LOGIN -->
+<div id="loginModal" class="modal">
+  <div style="text-align:right;"><button onclick="closeLogin()" style="font-size:20px; background:none; border:none; color:#00c3ff;">✖</button></div>
+  <h2 style="color:#00c3ff; margin:0;">🔐 Masuk / Daftar</h2>
+  <p style="color:#99dfff; font-size:12px;">Harus login dulu biar bisa pesan</p>
+  <hr class="invoice-line">
+  <input type="email" id="loginEmail" placeholder="Email" style="padding:10px; width:90%; border-radius:10px; margin-bottom:10px;">
+  <input type="password" id="loginPass" placeholder="Password" style="padding:10px; width:90%; border-radius:10px; margin-bottom:10px;">
+  <br/>
+  <button onclick="doLogin()">Masuk</button>
+  <button onclick="doRegister()">Daftar</button>
+</div>
+
 <!-- MODAL CHECKOUT -->
-<div id="checkoutModal">
-  <h2 style="color:#00c3ff;">📦 Invoice Pesanan</h2>
-  <p style="color:#99dfff;">Harap pilih ukuran sebelum mengirim</p>
-  <hr style="border:1px solid #00c3ff33; margin:15px 0;">
-  
+<div id="checkoutModal" class="modal">
+  <div style="text-align:right;"><button onclick="closeCheckout()" style="font-size:20px; background:none; border:none; color:#00c3ff;">✖</button></div>
+  <h2 style="color:#00c3ff; margin:0;">📦 Invoice Pesanan</h2>
+  <p style="color:#99dfff; font-size:12px;">Harap pilih ukuran sebelum mengirim</p>
+  <hr class="invoice-line">
+
+  <!-- INVOICE PREVIEW -->
   <div id="invoicePreview">
     <strong>Nama:</strong> <span id="invName">-</span><br/>
     <strong>Harga:</strong> <span id="invPrice">-</span><br/>
@@ -164,83 +250,173 @@
     <strong>Tanggal:</strong> <span id="invDate">-</span><br/>
   </div>
 
-  <hr style="border:1px solid #00c3ff33; margin:15px 0;">
+  <hr class="invoice-line">
 
+  <!-- PILIH UKURAN -->
   <div style="margin-bottom:20px;">
-    <p style="color:#fff;">Pilih Ukuran:</p>
+    <p style="color:#fff; margin-bottom:10px;">Pilih Ukuran:</p>
     <div id="sizeOptions"></div>
   </div>
 
-  <button id="sendWaBtn" onclick="sendToWhatsApp()" disabled>💬 Kirim ke WhatsApp</button>
+  <!-- BUTTON ACTION -->
+  <button id="sendWaBtn" onclick="sendToWhatsApp()" disabled style="background-color:#25D366; color:white; border:none; padding:12px 20px; border-radius:25px; font-weight:bold; width:100%; max-width:300px; margin:0 auto;">💬 Kirim ke WhatsApp</button>
 </div>
 
 <script>
+  let currentSlideIndex = {};
   let selectedSize = null;
-  let currentProduct = null;
+  let tempPostStore = [];
+  let currentUser = localStorage.getItem("maouku_user");
 
-  // Ambil semua produk saat halaman dimuat
-  window.addEventListener('load', () => {
-    google.script.run
-      .withSuccessHandler(posts => {
-        window.products = posts;
-        renderPosts(posts);
-      })
-      .getProducts();
-  });
-
-  function renderPosts(products) {
+  async function loadPostsFromSheet() {
     const container = document.getElementById('posts');
-    container.innerHTML = '';
+    try {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbyR4Uu9VQUSwBa4p-0q9K1BWvQiG2lKPPcqnmhKVjrBNruajHUejmMrKTG0FlTxDDU-Fw/exec?type=getPosts ');
+      const posts = await response.json();
 
-    products.forEach((product, index) => {
-      const postDiv = document.createElement('div');
-      postDiv.className = 'post';
+      if (posts.error) {
+        container.innerHTML = `<p style="color:red;">⚠️ ${posts.error}</p>`;
+        return;
+      }
 
-      const slidesHTML = product.images.map(img => `
-        <div class="slide"><img src="${img}" alt="Gambar"></div>
-      `).join('');
+      if (!Array.isArray(posts) || posts.length === 0) {
+        container.innerHTML = `<p style="color:#999;">Tidak ada posting tersedia.</p>`;
+        return;
+      }
 
-      const sliderHTML = `
-        <div class="slider" style="position:relative;overflow:hidden;width:100%;">
-          <div class="slides" id="slider${index}">
-            ${slidesHTML}
+      container.innerHTML = '';
+      tempPostStore = [];
+
+      posts.forEach((post, index) => {
+        tempPostStore.push(post);
+
+        const postId = 'slider' + index;
+        const images = post.images.filter(img => typeof img === 'string' && img.trim().startsWith('http'));
+        if (images.length === 0) return;
+
+        const postDiv = document.createElement('div');
+        postDiv.className = 'post';
+
+        const slidesHTML = images.map(img => `
+          <div class="slide">
+            <img src="${img}" alt="Gambar">
           </div>
-        </div>
-      `;
+        `).join('');
 
-      postDiv.innerHTML = sliderHTML + `
-        <div class="post-content">
-          <h3>${product.title}</h3>
-          <p>${product.description}</p>
-          <div class="price">${product.price}</div>
-          <div class="varian">Ukuran: ${product.varian}</div>
-          <button onclick="openCheckout(${index})" class="btn-wa">💬 Pesan via WhatsApp</button>
-        </div>
-      `;
+        const sliderHTML = `
+          <div class="slider">
+            <div class="slides" id="${postId}">
+              ${slidesHTML}
+            </div>
+            ${images.length > 1 ? `<button class="nav-btn prev" onclick="moveSlide('${postId}', -1)">❮</button>` : ''}
+            ${images.length > 1 ? `<button class="nav-btn next" onclick="moveSlide('${postId}', 1)">❯</button>` : ''}
+          </div>
+        `;
 
-      container.appendChild(postDiv);
-    });
+        postDiv.innerHTML = sliderHTML + `
+          <div class="post-content">
+            <h3 class="post-title">${post.title || ''}</h3>
+            <p style="margin:10px 0 0 0;">${post.description || ''}</p>
+            <div class="price">${post.price || ''}</div>
+            <div class="varian">Ukuran: ${post.varian || 'S/M/L/XL'}</div>
+            <button onclick="openCheckout(${index})" class="btn-wa">💬 Pesan via WhatsApp</button>
+          </div>
+        `;
+
+        container.appendChild(postDiv);
+
+        setTimeout(() => {
+          const slidesEl = document.getElementById(postId);
+          if (slidesEl && slidesEl.children.length > 0) {
+            slidesEl.style.transform = `translateX(0%)`;
+            currentSlideIndex[postId] = 0;
+          }
+        }, 50);
+      });
+
+    } catch (err) {
+      console.error(err);
+      container.innerHTML = `<p style="color:red;">❌ Gagal memuat data dari Google Sheet.</p>`;
+    }
   }
 
+  window.moveSlide = function(id, direction) {
+    const slidesEl = document.getElementById(id);
+    if (!slidesEl) return;
+
+    const total = slidesEl.children.length;
+    currentSlideIndex[id] = (currentSlideIndex[id] || 0) + direction;
+
+    if (currentSlideIndex[id] < 0) currentSlideIndex[id] = total - 1;
+    if (currentSlideIndex[id] >= total) currentSlideIndex[id] = 0;
+
+    slidesEl.style.transform = `translateX(-${currentSlideIndex[id] * 100}%)`;
+  };
+
+  // === LOGIN ===
+  function openLogin() {
+    document.getElementById('loginModal').style.display = 'block';
+  }
+
+  function closeLogin() {
+    document.getElementById('loginModal').style.display = 'none';
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('loginEmail').value;
+    const pass = document.getElementById('loginPass').value;
+
+    const url = `https://script.google.com/macros/s/AKfycbyR4Uu9VQUSwBa4p-0q9K1BWvQiG2lKPPcqnmhKVjrBNruajHUejmMrKTG0FlTxDDU-Fw/exec?type=login&email= ${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`;
+
+    const response = await fetch(url);
+    const result = await response.json();
+
+    if (result.status === "success") {
+      currentUser = result.email;
+      localStorage.setItem("maouku_user", result.email);
+      alert("Login berhasil!");
+      closeLogin();
+    } else {
+      alert("Email atau password salah");
+    }
+  }
+
+  async function doRegister() {
+    const email = document.getElementById('loginEmail').value;
+    const pass = document.getElementById('loginPass').value;
+
+    const url = `https://script.google.com/macros/s/AKfycbyR4Uu9VQUSwBa4p-0q9K1BWvQiG2lKPPcqnmhKVjrBNruajHUejmMrKTG0FlTxDDU-Fw/exec?type=register&email= ${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`;
+    
+    await fetch(url);
+    alert("Registrasi berhasil!");
+    closeLogin();
+  }
+
+  // === CHECKOUT ===
   function openCheckout(index) {
-    currentProduct = window.products[index];
-    if (!currentProduct) {
+    if (!localStorage.getItem("maouku_user")) {
+      alert("Anda harus login dulu.");
+      openLogin();
+      return;
+    }
+
+    const product = tempPostStore[index];
+    if (!product) {
       alert("Produk tidak ditemukan");
       return;
     }
 
-    document.getElementById('invName').innerText = currentProduct.title;
-    document.getElementById('invPrice').innerText = currentProduct.price;
-    document.getElementById('invImage').src = currentProduct.images[0] || '';
+    document.getElementById('invName').innerText = product.title || '-';
+    document.getElementById('invPrice').innerText = product.price || '-';
+    document.getElementById('invImage').src = product.images[0] || '';
     document.getElementById('invDate').innerText = new Date().toLocaleDateString('id-ID');
 
     const sizeContainer = document.getElementById('sizeOptions');
     sizeContainer.innerHTML = '';
     selectedSize = null;
 
-    const sizes = (currentProduct.varian || 'S,M,L,XL').split(',').map(s => s.trim());
-
-    const varianHarga = parseVarianHarga(currentProduct.harga_ukuran);
+    const sizes = (product.varian || 'S,M,L,XL').split(',').map(s => s.trim());
+    const varianHarga = parseVarianHarga(product.harga_ukuran);
 
     sizes.forEach(size => {
       const btn = document.createElement('button');
@@ -251,7 +427,7 @@
         btn.setAttribute('active', 'true');
         document.getElementById('invSize').innerText = size;
 
-        const basePrice = parseInt(currentProduct.price.replace(/[^\d]/g, ""));
+        const basePrice = parseInt(product.price.replace(/[^\d]/g, ""));
         const addPrice = varianHarga[size.toUpperCase()] || 0;
         const totalPrice = basePrice + addPrice;
         document.getElementById('invPrice').innerText = formatCurrency(totalPrice);
@@ -265,7 +441,15 @@
     document.getElementById('checkoutModal').style.display = 'block';
   }
 
-  function sendToWhatsApp() {
+  function closeCheckout() {
+    document.getElementById('checkoutModal').style.display = 'none';
+    selectedSize = null;
+    document.getElementById('invSize').innerText = '-';
+    document.getElementById('sendWaBtn').disabled = true;
+    document.getElementById('sendWaBtn').style.opacity = '0.6';
+  }
+
+  async function sendToWhatsApp() {
     if (!selectedSize) {
       alert("Silakan pilih ukuran dulu");
       return;
@@ -275,8 +459,10 @@
     const invPrice = document.getElementById('invPrice').innerText;
     const invSize = document.getElementById('invSize').innerText;
     const invImage = document.getElementById('invImage').src;
+    const invDate = document.getElementById('invDate').innerText;
+    const userEmail = localStorage.getItem("maouku_user");
 
-    const messageWA = `
+    const message = encodeURIComponent(`
 📦 MAOUKU STORE
    INVOICE PEMESANAN
 
@@ -284,16 +470,19 @@
 💰 Harga: ${invPrice}
 📏 Ukuran: ${invSize}
 🖼️ Gambar: ${invImage}
-📅 Tanggal: ${new Date().toLocaleDateString('id-ID')}
+📅 Tanggal: ${invDate}
 
 Terima kasih telah memesan!
-`;
+`);
 
-    const waLink = `https://wa.me/6285162701802?text= ${encodeURIComponent(messageWA)}`;
+    const waLink = `https://wa.me/6285162701802?text= ${message}`;
     window.open(waLink, '_blank');
 
-    // Simpan ke sheet
-    google.script.run.saveOrder(invName, "User", invSize, invPrice, invImage);
+    const saveUrl = `https://script.google.com/macros/s/AKfycbyR4Uu9VQUSwBa4p-0q9K1BWvQiG2lKPPcqnmhKVjrBNruajHUejmMrKTG0FlTxDDU-Fw/exec?type=saveOrder&productName= ${encodeURIComponent(invName)}&email=${encodeURIComponent(userEmail)}&size=${encodeURIComponent(invSize)}&totalPrice=${encodeURIComponent(invPrice)}&imageUrl=${encodeURIComponent(invImage)}`;
+
+    await fetch(saveUrl);
+
+    closeCheckout();
   }
 
   function parseVarianHarga(str) {
@@ -308,6 +497,10 @@ Terima kasih telah memesan!
   function formatCurrency(num) {
     return "Rp" + Number(num).toLocaleString('id-ID');
   }
+
+  window.addEventListener('load', () => {
+    loadPostsFromSheet();
+  });
 </script>
 
 </body>
