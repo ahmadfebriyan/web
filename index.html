@@ -388,18 +388,18 @@ async function doRegister() {
   const pass = document.getElementById('loginPass').value;
 
   const url = `https://script.google.com/macros/s/AKfycbyR4Uu9VQUSwBa4p-0q9K1BWvQiG2lKPPcqnmhKVjrBNruajHUejmMrKTG0FlTxDDU-Fw/exec?type=register&email= ${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`;
-
-  const response = await fetch(url);
-  const result = await response.json();
-
-  if (result.status === "success") {
-    alert("Registrasi berhasil. Silakan login.");
+  
+  try {
+    const response = await fetch(url);
+    const result = await response.json();
+    console.log(result); // Cek hasil di console browser (F12)
+    alert(result.message || "Daftar berhasil!");
     closeLogin();
-  } else {
-    alert(result.message || "Registrasi gagal");
+  } catch (err) {
+    console.error(err);
+    alert("Gagal terhubung ke server.");
   }
 }
-
   // === CHECKOUT ===
   function openCheckout(index) {
     if (!localStorage.getItem("maouku_user")) {
